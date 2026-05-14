@@ -18,9 +18,30 @@ imageFolder.addEventListener("change", loadImages);
 
 searchInput.addEventListener("input", applyFilters);
 
-cropFilter.addEventListener("change", applyFilters);
-resultFilter.addEventListener("change", applyFilters);
-locationFilter.addEventListener("change", applyFilters);
+document.querySelectorAll(".dropdown-button").forEach(button => {
+  button.addEventListener("click", event => {
+    event.stopPropagation();
+
+    const targetId = button.dataset.target;
+    const menu = document.getElementById(targetId);
+
+    document.querySelectorAll(".dropdown-menu").forEach(otherMenu => {
+      if (otherMenu !== menu) {
+        otherMenu.classList.remove("open");
+      }
+    });
+
+    menu.classList.toggle("open");
+  });
+});
+
+document.addEventListener("click", event => {
+  if (!event.target.closest(".dropdown-filter")) {
+    document.querySelectorAll(".dropdown-menu").forEach(menu => {
+      menu.classList.remove("open");
+    });
+  }
+});
 
 function normalizePath(path) {
   return String(path || "").replaceAll("\\", "/");
@@ -31,33 +52,78 @@ function getFileName(path) {
   return normalized.split("/").pop();
 }
 
-function getSelectedValues(select) {
-  return Array.from(select.selectedOptions).map(option => option.value);
+function getCheckedValues(container) {
+  return Array.from(
+    container.querySelectorAll("input[type='checkbox']:checked")
+  ).map(cb => cb.value);
+}
+
+function updateDropdownButton(container, label) {
+  const selectedValues = getCheckedValues(container);
+  const button = document.querySelector(`[data-target="${container.id}"]`);
+
+  if (selectedValues.length === 0) {
+    button.textContent = `選擇 ${label}`;
+  } else if (selectedValues.length === 1) {
+    button.textContent = selectedValues[0];
+  } else {
+    button.textContent = `${label}：已選 ${selectedValues.length} 項`;
+  }
+}
+
+function createCheckboxes(container, values, name, label) {
+  container.innerHTML = "";
+
+  values.forEach(value => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "checkbox-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = value;
+    checkbox.name = name;
+
+    checkbox.addEventListener("click", event => {
+      event.stopPropagation();
+    });
+
+    checkbox.addEventListener("change", () => {
+      updateDropdownButton(container, label);
+      applyFilters();
+    });
+
+    const checkboxLabel = document.createElement("label");
+    checkboxLabel.textContent = value;
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(checkboxLabel);
+
+    container.appendChild(wrapper);
+  });
+
+  updateDropdownButton(container, label);
 }
 
 function loadImages(event) {
   imageFiles = {};
 
   for (const file of event.target.files) {
-
     imageFiles[file.name] = URL.createObjectURL(file);
 
     if (file.webkitRelativePath) {
-      imageFiles[normalizePath(file.webkitRelativePath)] =
-        URL.createObjectURL(file);
+      imageFiles[
+        normalizePath(file.webkitRelativePath)
+      ] = URL.createObjectURL(file);
     }
-
   }
 }
 
 function loadExcel(event) {
-
   const file = event.target.files[0];
 
   const reader = new FileReader();
 
   reader.onload = function(e) {
-
     const rawData = new Uint8Array(e.target.result);
 
     const workbook = XLSX.read(rawData, { type: "array" });
@@ -76,29 +142,22 @@ function loadExcel(event) {
     setupFilters();
 
     applyFilters();
-
   };
 
   reader.readAsArrayBuffer(file);
-
 }
 
 function buildImageMap() {
-
   imageMap = {};
 
   imagesData.forEach(row => {
-
     if (row.sample_id && row.image_path) {
       imageMap[row.sample_id] = row.image_path;
     }
-
   });
-
 }
 
 function setupFilters() {
-
   const crops =
     [...new Set(data.map(row => row.crop).filter(Boolean))];
 
@@ -108,57 +167,21 @@ function setupFilters() {
   const locations =
     [...new Set(data.map(row => row.location).filter(Boolean))];
 
-  cropFilter.innerHTML = "";
-  resultFilter.innerHTML = "";
-  locationFilter.innerHTML = "";
-
-  crops.forEach(crop => {
-
-    const option = document.createElement("option");
-
-    option.value = crop;
-    option.textContent = crop;
-
-    cropFilter.appendChild(option);
-
-  });
-
-  results.forEach(result => {
-
-    const option = document.createElement("option");
-
-    option.value = result;
-    option.textContent = result;
-
-    resultFilter.appendChild(option);
-
-  });
-
-  locations.forEach(location => {
-
-    const option = document.createElement("option");
-
-    option.value = location;
-    option.textContent = location;
-
-    locationFilter.appendChild(option);
-
-  });
-
+  createCheckboxes(cropFilter, crops, "crop", "Crop");
+  createCheckboxes(resultFilter, results, "result", "Result");
+  createCheckboxes(locationFilter, locations, "location", "Location");
 }
 
 function applyFilters() {
-
   const keyword = searchInput.value.toLowerCase();
 
-  const selectedCrops = getSelectedValues(cropFilter);
+  const selectedCrops = getCheckedValues(cropFilter);
 
-  const selectedResults = getSelectedValues(resultFilter);
+  const selectedResults = getCheckedValues(resultFilter);
 
-  const selectedLocations = getSelectedValues(locationFilter);
+  const selectedLocations = getCheckedValues(locationFilter);
 
   filteredData = data.filter(row => {
-
     const matchKeyword =
       Object.values(row)
         .join(" ")
@@ -183,21 +206,17 @@ function applyFilters() {
       matchResult &&
       matchLocation
     );
-
   });
 
   renderTable();
-
 }
 
 function renderTable() {
-
   const tbody = document.querySelector("#dataTable tbody");
 
   tbody.innerHTML = "";
 
   filteredData.forEach(row => {
-
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
@@ -213,13 +232,10 @@ function renderTable() {
     tr.addEventListener("click", () => showDetail(row));
 
     tbody.appendChild(tr);
-
   });
-
 }
 
 function showDetail(row) {
-
   const detailInfo = document.getElementById("detailInfo");
 
   const imagePath = imageMap[row.id];
@@ -244,17 +260,10 @@ function showDetail(row) {
   const image = document.getElementById("dataImage");
 
   if (imagePath && imageFiles[imageFileName]) {
-
     image.src = imageFiles[imageFileName];
-
   } else if (imagePath && imageFiles[normalizedImagePath]) {
-
     image.src = imageFiles[normalizedImagePath];
-
   } else {
-
     image.src = "";
-
   }
-
 }

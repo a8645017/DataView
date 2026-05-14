@@ -17,34 +17,41 @@
 
   <section class="controls">
 
-    <div class="control-group">
-      <label>選擇 Excel</label>
-      <input type="file" id="excelFile" accept=".xlsx,.xls">
+    <div class="top-controls">
+      <div class="control-group">
+        <label>選擇 Excel</label>
+        <input type="file" id="excelFile" accept=".xlsx,.xls">
+      </div>
+
+      <div class="control-group">
+        <label>選擇圖片資料夾</label>
+        <input type="file" id="imageFolder" webkitdirectory multiple>
+      </div>
+
+      <div class="control-group">
+        <label>搜尋</label>
+        <input type="text" id="searchInput" placeholder="輸入關鍵字">
+      </div>
     </div>
 
-    <div class="control-group">
-      <label>選擇圖片資料夾</label>
-      <input type="file" id="imageFolder" webkitdirectory multiple>
-    </div>
+    <div class="filter-controls">
+      <div class="control-group dropdown-filter">
+        <label>Crop</label>
+        <button type="button" class="dropdown-button" data-target="cropFilter">選擇 Crop</button>
+        <div id="cropFilter" class="checkbox-group dropdown-menu"></div>
+      </div>
 
-    <div class="control-group">
-      <label>搜尋</label>
-      <input type="text" id="searchInput" placeholder="輸入關鍵字">
-    </div>
+      <div class="control-group dropdown-filter">
+        <label>Result</label>
+        <button type="button" class="dropdown-button" data-target="resultFilter">選擇 Result</button>
+        <div id="resultFilter" class="checkbox-group dropdown-menu"></div>
+      </div>
 
-    <div class="control-group">
-      <label>Crop</label>
-      <select id="cropFilter" multiple size="6"></select>
-    </div>
-
-    <div class="control-group">
-      <label>Result</label>
-      <select id="resultFilter" multiple size="6"></select>
-    </div>
-
-    <div class="control-group">
-      <label>Location</label>
-      <select id="locationFilter" multiple size="6"></select>
+      <div class="control-group dropdown-filter">
+        <label>Location</label>
+        <button type="button" class="dropdown-button" data-target="locationFilter">選擇 Location</button>
+        <div id="locationFilter" class="checkbox-group dropdown-menu"></div>
+      </div>
     </div>
 
   </section>

@@ -16,21 +16,83 @@ h1 {
 
 .controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 15px;
   padding: 20px;
   background: white;
 }
 
+.top-controls,
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .control-group {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 input,
 select {
   padding: 8px;
   min-width: 180px;
+}
+
+.dropdown-button {
+  padding: 8px;
+  min-width: 180px;
+  text-align: left;
+  background: white;
+  border: 1px solid #999;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  width: 190px;
+  margin-top: 5px;
+}
+
+.dropdown-menu.open {
+  display: flex;
+}
+
+.checkbox-group {
+  flex-direction: column;
+  gap: 5px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  background: white;
+  min-width: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.checkbox-item {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.checkbox-item input {
+  min-width: 0;
+}
+
+.checkbox-item label {
+  word-break: break-word;
 }
 
 main {
