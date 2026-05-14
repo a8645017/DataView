@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+header {
+  background: #1f2937;
+  color: white;
+  padding: 20px;
+}
+
+h1 {
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+input,
+select {
+  padding: 8px;
+  min-width: 180px;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.table-section,
+.detail-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.detail-section {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #e5e7eb;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+tr:hover {
+  background: #f3f4f6;
+  cursor: pointer;
+}
+
+#dataImage {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 10px;
+}

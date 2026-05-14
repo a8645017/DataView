@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataView</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1>DataView</h1>
+  </header>
+
+  <section class="controls">
+
+    <div class="control-group">
+      <label>選擇 Excel</label>
+      <input type="file" id="excelFile" accept=".xlsx,.xls">
+    </div>
+
+    <div class="control-group">
+      <label>選擇圖片資料夾</label>
+      <input type="file" id="imageFolder" webkitdirectory multiple>
+    </div>
+
+    <div class="control-group">
+      <label>搜尋</label>
+      <input type="text" id="searchInput" placeholder="輸入關鍵字">
+    </div>
+
+    <div class="control-group">
+      <label>Crop</label>
+      <select id="cropFilter" multiple size="6"></select>
+    </div>
+
+    <div class="control-group">
+      <label>Result</label>
+      <select id="resultFilter" multiple size="6"></select>
+    </div>
+
+    <div class="control-group">
+      <label>Location</label>
+      <select id="locationFilter" multiple size="6"></select>
+    </div>
+
+  </section>
+
+  <main>
+
+    <section class="table-section">
+
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Crop</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Result</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </section>
+
+    <section class="detail-section">
+
+      <h2>Data Detail</h2>
+
+      <div id="detailInfo"></div>
+
+      <img id="dataImage">
+
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
