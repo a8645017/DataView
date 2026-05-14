@@ -12,6 +12,7 @@ const imageFolder = document.getElementById("imageFolder");
 
 const searchInput = document.getElementById("searchInput");
 
+const prefixFilter = document.getElementById("prefixFilter");
 const cropFilter = document.getElementById("cropFilter");
 const resultFilter = document.getElementById("resultFilter");
 const locationFilter = document.getElementById("locationFilter");
@@ -53,6 +54,10 @@ function normalizePath(path) {
 function getFileName(path) {
   const normalized = normalizePath(path);
   return normalized.split("/").pop();
+}
+
+function getNamePrefix(row) {
+  return String(row.name || "").substring(0, 6);
 }
 
 function getCheckedValues(container) {
@@ -161,6 +166,9 @@ function buildImageMap() {
 }
 
 function setupFilters() {
+  const prefixes =
+    [...new Set(data.map(row => getNamePrefix(row)).filter(Boolean))];
+
   const crops =
     [...new Set(data.map(row => row.crop).filter(Boolean))];
 
@@ -170,6 +178,7 @@ function setupFilters() {
   const locations =
     [...new Set(data.map(row => row.location).filter(Boolean))];
 
+  createCheckboxes(prefixFilter, prefixes, "prefix", "Prefix");
   createCheckboxes(cropFilter, crops, "crop", "Crop");
   createCheckboxes(resultFilter, results, "result", "Result");
   createCheckboxes(locationFilter, locations, "location", "Location");
@@ -177,6 +186,8 @@ function setupFilters() {
 
 function applyFilters() {
   const keyword = searchInput.value.toLowerCase();
+
+  const selectedPrefixes = getCheckedValues(prefixFilter);
 
   const selectedCrops = getCheckedValues(cropFilter);
 
@@ -190,6 +201,10 @@ function applyFilters() {
         .join(" ")
         .toLowerCase()
         .includes(keyword);
+
+    const matchPrefix =
+      selectedPrefixes.length === 0 ||
+      selectedPrefixes.includes(getNamePrefix(row));
 
     const matchCrop =
       selectedCrops.length === 0 ||
@@ -205,6 +220,7 @@ function applyFilters() {
 
     return (
       matchKeyword &&
+      matchPrefix &&
       matchCrop &&
       matchResult &&
       matchLocation
