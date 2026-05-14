@@ -5,7 +5,7 @@ let imageFiles = {};
 let imageMap = {};
 
 let map;
-let mapMarkers = [];
+let markerClusterGroup;
 
 const excelFile = document.getElementById("excelFile");
 const imageFolder = document.getElementById("imageFolder");
@@ -282,20 +282,26 @@ function initMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19
   }).addTo(map);
+
+  markerClusterGroup = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    disableClusteringAtZoom: 18
+  });
+
+  map.addLayer(markerClusterGroup);
 }
 
 function updateMap() {
   initMap();
 
-  mapMarkers.forEach(marker => {
-    map.removeLayer(marker);
-  });
-
-  mapMarkers = [];
+  markerClusterGroup.clearLayers();
 
   const validRows = filteredData.filter(row => {
     return row.latitude && row.longitude;
   });
+
+  const markers = [];
 
   validRows.forEach(row => {
     const lat = parseFloat(row.latitude);
@@ -305,7 +311,7 @@ function updateMap() {
       return;
     }
 
-    const marker = L.marker([lat, lng]).addTo(map);
+    const marker = L.marker([lat, lng]);
 
     marker.bindPopup(`
       <b>${row.name || ""}</b><br>
@@ -317,11 +323,12 @@ function updateMap() {
 
     marker.on("click", () => showDetail(row));
 
-    mapMarkers.push(marker);
+    markerClusterGroup.addLayer(marker);
+    markers.push(marker);
   });
 
-  if (mapMarkers.length > 0) {
-    const group = L.featureGroup(mapMarkers);
+  if (markers.length > 0) {
+    const group = L.featureGroup(markers);
     map.fitBounds(group.getBounds(), {
       padding: [30, 30]
     });
