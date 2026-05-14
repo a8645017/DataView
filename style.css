@@ -42,6 +42,13 @@ select {
   min-width: 180px;
 }
 
+#colorBySelect {
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
 .dropdown-button {
   padding: 8px;
   min-width: 180px;
@@ -128,6 +135,46 @@ main {
   width: 100%;
   height: 500px;
   border-radius: 10px;
+}
+
+.custom-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+.map-legend {
+  background: white;
+  padding: 10px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+  max-width: 180px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.legend-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+  word-break: break-word;
+}
+
+.legend-color {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid #ddd;
 }
 
 table {

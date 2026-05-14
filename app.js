@@ -3,24 +3,50 @@ let imagesData = [];
 let filteredData = [];
 let imageFiles = {};
 let imageMap = {};
+let categoryColorMap = {};
 
 let map;
 let markerClusterGroup;
+let legendControl;
 
 const excelFile = document.getElementById("excelFile");
 const imageFolder = document.getElementById("imageFolder");
 
 const searchInput = document.getElementById("searchInput");
+const colorBySelect = document.getElementById("colorBySelect");
 
 const prefixFilter = document.getElementById("prefixFilter");
 const cropFilter = document.getElementById("cropFilter");
 const resultFilter = document.getElementById("resultFilter");
 const locationFilter = document.getElementById("locationFilter");
 
+const markerColors = [
+  "#ff0000",
+  "#0066ff",
+  "#00aa00",
+  "#ff9900",
+  "#9900ff",
+  "#00cccc",
+  "#ff1493",
+  "#8b4513",
+  "#808000",
+  "#000000",
+  "#808080",
+  "#66cc00",
+  "#ff66cc",
+  "#003366",
+  "#cc0000",
+  "#009999"
+];
+
 excelFile.addEventListener("change", loadExcel);
 imageFolder.addEventListener("change", loadImages);
 
 searchInput.addEventListener("input", applyFilters);
+colorBySelect.addEventListener("change", () => {
+  categoryColorMap = {};
+  updateMap();
+});
 
 document.querySelectorAll(".dropdown-button").forEach(button => {
   button.addEventListener("click", event => {
@@ -64,6 +90,51 @@ function getCheckedValues(container) {
   return Array.from(
     container.querySelectorAll("input[type='checkbox']:checked")
   ).map(cb => cb.value);
+}
+
+function getColorByField() {
+  return colorBySelect.value;
+}
+
+function getCategoryLabel() {
+  const field = getColorByField();
+
+  if (field === "crop") {
+    return "Crop";
+  }
+
+  return "Result";
+}
+
+function getCategoryValue(row) {
+  const field = getColorByField();
+
+  if (field === "crop") {
+    return String(row.crop || "未分類");
+  }
+
+  return String(row.result || "未分類");
+}
+
+function getMarkerColor(category) {
+  if (!categoryColorMap[category]) {
+    const index = Object.keys(categoryColorMap).length % markerColors.length;
+    categoryColorMap[category] = markerColors[index];
+  }
+
+  return categoryColorMap[category];
+}
+
+function createColorMarkerIcon(color) {
+  return L.divIcon({
+    className: "",
+    html: `
+      <div class="custom-marker" style="background:${color};"></div>
+    `,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -9]
+  });
 }
 
 function updateDropdownButton(container, label) {
@@ -144,6 +215,8 @@ function loadExcel(event) {
     imagesData = imagesSheet
       ? XLSX.utils.sheet_to_json(imagesSheet)
       : [];
+
+    categoryColorMap = {};
 
     buildImageMap();
 
@@ -306,6 +379,48 @@ function initMap() {
   });
 
   map.addLayer(markerClusterGroup);
+
+  legendControl = L.control({
+    position: "bottomright"
+  });
+
+  legendControl.onAdd = function() {
+    const div = L.DomUtil.create("div", "map-legend");
+    div.id = "mapLegend";
+    return div;
+  };
+
+  legendControl.addTo(map);
+}
+
+function updateLegend(validRows) {
+  const legend = document.getElementById("mapLegend");
+
+  if (!legend) {
+    return;
+  }
+
+  const visibleCategories = [
+    ...new Set(validRows.map(row => getCategoryValue(row)))
+  ];
+
+  if (visibleCategories.length === 0) {
+    legend.innerHTML = "";
+    legend.style.display = "none";
+    return;
+  }
+
+  legend.style.display = "block";
+
+  legend.innerHTML = `
+    <div class="legend-title">${getCategoryLabel()}</div>
+    ${visibleCategories.map(category => `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${getMarkerColor(category)};"></span>
+        <span>${category}</span>
+      </div>
+    `).join("")}
+  `;
 }
 
 function updateMap() {
@@ -317,6 +432,8 @@ function updateMap() {
     return row.latitude && row.longitude;
   });
 
+  updateLegend(validRows);
+
   const markers = [];
 
   validRows.forEach(row => {
@@ -327,7 +444,12 @@ function updateMap() {
       return;
     }
 
-    const marker = L.marker([lat, lng]);
+    const category = getCategoryValue(row);
+    const color = getMarkerColor(category);
+
+    const marker = L.marker([lat, lng], {
+      icon: createColorMarkerIcon(color)
+    });
 
     marker.bindPopup(`
       <b>${row.name || ""}</b><br>
