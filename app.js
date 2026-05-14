@@ -4,6 +4,9 @@ let filteredData = [];
 let imageFiles = {};
 let imageMap = {};
 
+let map;
+let mapMarkers = [];
+
 const excelFile = document.getElementById("excelFile");
 const imageFolder = document.getElementById("imageFolder");
 
@@ -209,6 +212,7 @@ function applyFilters() {
   });
 
   renderTable();
+  updateMap();
 }
 
 function renderTable() {
@@ -265,5 +269,61 @@ function showDetail(row) {
     image.src = imageFiles[normalizedImagePath];
   } else {
     image.src = "";
+  }
+}
+
+function initMap() {
+  if (map) {
+    return;
+  }
+
+  map = L.map("map").setView([23.7, 120.9], 7);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(map);
+}
+
+function updateMap() {
+  initMap();
+
+  mapMarkers.forEach(marker => {
+    map.removeLayer(marker);
+  });
+
+  mapMarkers = [];
+
+  const validRows = filteredData.filter(row => {
+    return row.latitude && row.longitude;
+  });
+
+  validRows.forEach(row => {
+    const lat = parseFloat(row.latitude);
+    const lng = parseFloat(row.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return;
+    }
+
+    const marker = L.marker([lat, lng]).addTo(map);
+
+    marker.bindPopup(`
+      <b>${row.name || ""}</b><br>
+      Crop: ${row.crop || ""}<br>
+      Location: ${row.location || ""}<br>
+      Date: ${row.date || ""}<br>
+      Result: ${row.result || ""}
+    `);
+
+    marker.on("click", () => showDetail(row));
+
+    mapMarkers.push(marker);
+  });
+
+  if (mapMarkers.length > 0) {
+    const group = L.featureGroup(mapMarkers);
+    map.fitBounds(group.getBounds(), {
+      padding: [30, 30]
+    });
   }
 }
