@@ -20,6 +20,10 @@ const cropFilter = document.getElementById("cropFilter");
 const resultFilter = document.getElementById("resultFilter");
 const locationFilter = document.getElementById("locationFilter");
 
+const totalCount = document.getElementById("totalCount");
+const cropStats = document.getElementById("cropStats");
+const resultStats = document.getElementById("resultStats");
+
 const markerColors = [
   "#ff0000",
   "#0066ff",
@@ -43,6 +47,7 @@ excelFile.addEventListener("change", loadExcel);
 imageFolder.addEventListener("change", loadImages);
 
 searchInput.addEventListener("input", applyFilters);
+
 colorBySelect.addEventListener("change", () => {
   categoryColorMap = {};
   updateMap();
@@ -301,6 +306,7 @@ function applyFilters() {
   });
 
   renderTable();
+  updateStats();
   updateMap();
 }
 
@@ -326,6 +332,54 @@ function renderTable() {
 
     tbody.appendChild(tr);
   });
+}
+
+function countByField(rows, field) {
+  const counts = {};
+
+  rows.forEach(row => {
+    const value = String(row[field] || "未分類");
+
+    if (!counts[value]) {
+      counts[value] = 0;
+    }
+
+    counts[value] += 1;
+  });
+
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1]);
+}
+
+function renderStatsList(container, stats) {
+  container.innerHTML = "";
+
+  if (stats.length === 0) {
+    container.innerHTML = `<div class="stat-empty">沒有資料</div>`;
+    return;
+  }
+
+  stats.forEach(([label, count]) => {
+    const item = document.createElement("div");
+    item.className = "stat-item";
+
+    item.innerHTML = `
+      <span class="stat-label">${label}</span>
+      <span class="stat-count">${count}</span>
+    `;
+
+    container.appendChild(item);
+  });
+}
+
+function updateStats() {
+  totalCount.textContent = filteredData.length;
+
+  const cropCounts = countByField(filteredData, "crop");
+  const resultCounts = countByField(filteredData, "result");
+
+  renderStatsList(cropStats, cropCounts);
+  renderStatsList(resultStats, resultCounts);
 }
 
 function showDetail(row) {
