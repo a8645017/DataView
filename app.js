@@ -1,9 +1,11 @@
 let data = [];
 let imagesData = [];
+let baseFilteredData = [];
 let filteredData = [];
 let imageFiles = {};
 let imageMap = {};
 let categoryColorMap = {};
+let legendFilterValue = null;
 
 let map;
 let markerClusterGroup;
@@ -50,7 +52,8 @@ searchInput.addEventListener("input", applyFilters);
 
 colorBySelect.addEventListener("change", () => {
   categoryColorMap = {};
-  updateMap();
+  legendFilterValue = null;
+  applyFilters();
 });
 
 document.querySelectorAll(".dropdown-button").forEach(button => {
@@ -172,6 +175,7 @@ function createCheckboxes(container, values, name, label) {
     });
 
     checkbox.addEventListener("change", () => {
+      legendFilterValue = null;
       updateDropdownButton(container, label);
       applyFilters();
     });
@@ -222,6 +226,7 @@ function loadExcel(event) {
       : [];
 
     categoryColorMap = {};
+    legendFilterValue = null;
 
     buildImageMap();
 
@@ -273,7 +278,7 @@ function applyFilters() {
 
   const selectedLocations = getCheckedValues(locationFilter);
 
-  filteredData = data.filter(row => {
+  baseFilteredData = data.filter(row => {
     const matchKeyword =
       Object.values(row)
         .join(" ")
@@ -305,9 +310,31 @@ function applyFilters() {
     );
   });
 
+  applyLegendFilter();
+}
+
+function applyLegendFilter() {
+  if (legendFilterValue) {
+    filteredData = baseFilteredData.filter(row => {
+      return getCategoryValue(row) === legendFilterValue;
+    });
+  } else {
+    filteredData = [...baseFilteredData];
+  }
+
   renderTable();
   updateStats();
   updateMap();
+}
+
+function toggleLegendFilter(category) {
+  if (legendFilterValue === category) {
+    legendFilterValue = null;
+  } else {
+    legendFilterValue = category;
+  }
+
+  applyLegendFilter();
 }
 
 function renderTable() {
@@ -488,8 +515,12 @@ function updateLegend(validRows) {
     return;
   }
 
+  const legendRows = baseFilteredData.filter(row => {
+    return row.latitude && row.longitude;
+  });
+
   const visibleCategories = [
-    ...new Set(validRows.map(row => getCategoryValue(row)))
+    ...new Set(legendRows.map(row => getCategoryValue(row)))
   ];
 
   if (visibleCategories.length === 0) {
@@ -500,15 +531,31 @@ function updateLegend(validRows) {
 
   legend.style.display = "block";
 
+  const activeText = legendFilterValue
+    ? `<div class="legend-active">目前：${legendFilterValue}</div>`
+    : `<div class="legend-active">點選圖例可篩選</div>`;
+
   legend.innerHTML = `
     <div class="legend-title">${getCategoryLabel()}</div>
-    ${visibleCategories.map(category => `
-      <div class="legend-item">
-        <span class="legend-color" style="background:${getMarkerColor(category)};"></span>
-        <span>${category}</span>
-      </div>
-    `).join("")}
+    ${activeText}
+    ${visibleCategories.map(category => {
+      const activeClass = legendFilterValue === category ? " active" : "";
+
+      return `
+        <div class="legend-item${activeClass}" data-category="${category}">
+          <span class="legend-color" style="background:${getMarkerColor(category)};"></span>
+          <span>${category}</span>
+        </div>
+      `;
+    }).join("")}
   `;
+
+  legend.querySelectorAll(".legend-item").forEach(item => {
+    item.addEventListener("click", event => {
+      event.stopPropagation();
+      toggleLegendFilter(item.dataset.category);
+    });
+  });
 }
 
 function updateMap() {
