@@ -328,9 +328,43 @@ function renderTable() {
       <td>${row.longitude || ""}</td>
     `;
 
-    tr.addEventListener("click", () => showDetail(row));
+    tr.addEventListener("click", () => {
+      showDetail(row);
+      zoomToRow(row);
+    });
 
     tbody.appendChild(tr);
+  });
+}
+
+function zoomToRow(row) {
+  if (!map || !markerClusterGroup) {
+    return;
+  }
+
+  const lat = parseFloat(row.latitude);
+  const lng = parseFloat(row.longitude);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    return;
+  }
+
+  map.setView([lat, lng], 16, {
+    animate: true,
+    duration: 1
+  });
+
+  markerClusterGroup.eachLayer(layer => {
+    const markerLatLng = layer.getLatLng();
+
+    if (
+      Math.abs(markerLatLng.lat - lat) < 0.000001 &&
+      Math.abs(markerLatLng.lng - lng) < 0.000001
+    ) {
+      setTimeout(() => {
+        layer.openPopup();
+      }, 400);
+    }
   });
 }
 
